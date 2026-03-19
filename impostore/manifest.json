@@ -2,7 +2,7 @@
   "name": "Impostore",
   "short_name": "Impostore",
   "description": "Il gioco virale dei party — trova l'impostore!",
-  "start_url": "./impostor.html",
+  "start_url": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#08080E",
