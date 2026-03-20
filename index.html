@@ -503,6 +503,41 @@ body{
 .empty-ico{ font-size:46px; margin-bottom:12px; display:block; }
 
 /* ════════════════════════════
+   DRAW SCREEN
+════════════════════════════ */
+#draw{ background:#08080E; overflow:hidden; padding-top:0; }
+#draw::before{
+  content:''; position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 70% 50% at 30% 20%, rgba(255,159,10,.18) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 75% 70%, rgba(10,132,255,.14) 0%, transparent 50%);
+}
+.draw-card{
+  position:relative; z-index:1;
+  background:rgba(255,255,255,.07);
+  border:.5px solid rgba(255,255,255,.13);
+  backdrop-filter:blur(40px) saturate(160%); -webkit-backdrop-filter:blur(40px) saturate(160%);
+  border-radius:var(--r6); padding:40px 28px; text-align:center;
+  width:100%; max-width:320px; box-shadow:var(--s4);
+}
+.draw-label{ font-size:12px; color:rgba(255,255,255,.4); letter-spacing:1.5px; text-transform:uppercase; margin-bottom:10px; }
+.draw-name{
+  font-size:42px; font-weight:700; color:#fff;
+  letter-spacing:-1.5px; line-height:1.05; margin-bottom:20px;
+  animation: pop-in .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes pop-in{ 0%{opacity:0;transform:scale(.7)} 100%{opacity:1;transform:scale(1)} }
+.draw-dir{
+  display:inline-flex; align-items:center; gap:10px;
+  background:rgba(255,255,255,.12); border-radius:100px;
+  padding:10px 20px; font-size:17px; font-weight:600; color:#fff;
+  margin-bottom:8px;
+}
+.draw-dir-arrow{ font-size:26px; }
+.draw-hint{ font-size:14px; color:rgba(255,255,255,.38); line-height:1.6; margin-top:10px; }
+.draw-btn{ position:relative; z-index:1; width:100%; max-width:320px; }
+
+/* ════════════════════════════
    VOTE sticky footer pattern
 ════════════════════════════ */
 #vote{ /* vote screen has sticky button at bottom */ }
@@ -672,6 +707,24 @@ body{
 
     <button class="btn btn-p" id="rv-next" onclick="nextPlayer()"
       style="width:100%;max-width:320px">Ho capito ✓</button>
+  </div>
+</div>
+
+<!-- ══════════════ DRAW ══════════════ -->
+<div class="screen" id="draw">
+  <div class="body-center" style="gap:24px;padding-top:calc(var(--sat) + 24px)">
+    <div class="draw-card">
+      <div class="draw-label">🎲 Inizia per primo</div>
+      <div class="draw-name" id="draw-name">—</div>
+      <div class="draw-dir">
+        <span class="draw-dir-arrow" id="draw-arrow">→</span>
+        <span id="draw-dir-text">si va verso destra</span>
+      </div>
+      <div class="draw-hint">Poi il giro continua in quella direzione.<br>Ognuno dice una parola collegata.</div>
+    </div>
+    <button class="btn btn-p draw-btn" onclick="startDiscussion()">
+      🎮 Inizia la Discussione
+    </button>
   </div>
 </div>
 
@@ -885,7 +938,7 @@ let G = {
   roles:[], word:'', currentIdx:0,
   eliminated:new Set(), timerSec:180,
   timerInterval:null, timerPaused:false,
-  voteSelected:null, round:1,
+  voteSelected:null, round:1, drawDirection:'destra',
 };
 
 /* ════════════════════════════════════
@@ -1189,7 +1242,32 @@ function doReveal() {
 
 function nextPlayer() {
   G.currentIdx++;
-  if (G.currentIdx >= G.count) startDiscussion(); else goPass();
+  if (G.currentIdx >= G.count) showDraw(); else goPass();
+}
+
+/* ════════════════════════════════════
+   DRAW — estrazione nome e direzione
+════════════════════════════════════ */
+function showDraw() {
+  // Estrai giocatore casuale (tra quelli non eliminati — al primo giro tutti attivi)
+  const active = G.names.map((_,i) => i).filter(i => !G.eliminated.has(i));
+  const pickedIdx = active[Math.floor(Math.random() * active.length)];
+  const pickedName = G.names[pickedIdx];
+
+  // Direzione casuale
+  const goRight = Math.random() < 0.5;
+  G.drawDirection = goRight ? 'destra' : 'sinistra';
+
+  document.getElementById('draw-name').textContent = pickedName;
+  document.getElementById('draw-arrow').textContent = goRight ? '→' : '←';
+  document.getElementById('draw-dir-text').textContent = goRight ? 'si va verso destra' : 'si va verso sinistra';
+
+  // Restart pop-in animation by cloning the element
+  const nameEl = document.getElementById('draw-name');
+  nameEl.style.animation = 'none';
+  requestAnimationFrame(() => { nameEl.style.animation = ''; });
+
+  doNav('draw');
 }
 
 /* ════════════════════════════════════
