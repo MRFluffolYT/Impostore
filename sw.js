@@ -1,4 +1,4 @@
-const CACHE = 'impostore-v1';
+const CACHE = 'impostore-v2';
 const FILES = [
   './index.html',
   './manifest.json',
